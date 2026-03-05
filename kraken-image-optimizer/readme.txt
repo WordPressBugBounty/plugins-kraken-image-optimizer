@@ -1,11 +1,11 @@
 === Kraken.io Image Optimizer ===
 Contributors: karim79
+Tags: anigif, compress image, exif, image optimizer, image resize, jpg, media, Optimization, optimize, optimize animated gif, optimize gif, optimize jpeg, optimize png, PageRank, PageSpeed Insights, performance, photos, png, Reduce Image Size, retina, seo, sitespeed, speed up site, svg, upload, svg, upload, gtmetrix speed test, EXIF, image resize, kraken.io, smush
+Requires at least: 4.9
+Requires PHP: 5.6
+Tested up to: 6.7
 Donate link: https://kraken.io
-Tags: compress images, image optimizer, SEO, performance, image resize, jpg, media, Optimization, optimize, optimize animated gif, optimize gif, optimize jpeg, optimize png, PageRank, PageSpeed Insights, photos, png, Reduce Image Size, retina, sitespeed, speed up site, svg, upload, svg, upload, gtmetrix speed test, EXIF, image resize
-Requires at least: 3.0.1
-Tested up to: 6.0.3
-Requires PHP: 5.0.0
-Stable tag: 2.6.8
+Stable tag: 2.7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
@@ -68,12 +68,13 @@ Please send bug reports, problems, feature requests and so on to support (at) Kr
 = Connect with Kraken.io =
 * Website: https://kraken.io
 * [Twitter](https://twitter.com/KrakenIO "@KrakenIO")
-* [Facebook](https://www.facebook.com/krakenio "Kraken.io Image Optimizer")
+* [Google+](https://plus.google.com/107209047753760492207/ "Google+")
+* [Facebook](https://www.facebook.com/krakenio "Kraken Image Optimizer")
 * [Github](https://github.com/kraken-io "Kraken.io on Github")
 
 == Installation ==
 
-To install the Kraken.io Wordpress Plugin:
+To install the Kraken Wordpress Plugin:
 
 1. Upload `kraken.php` to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
@@ -107,7 +108,28 @@ Yes, of course they will. Our plugin simply replaces the image files on your blo
 
 You will need to switch the Media Library from the Grid view to the List view. In the "Kraked Size" column, you will then see the "Optimize This Image" button for unoptimized images, or the results of the optimization where the image has already been optimized by our plugin.
 
+= What is the difference between Kraken.io and other plugins such as Optimus, EWWW, WP Smush, Imagify and TinyPNG/TinyJPG? =
+Kraken.io's service emphasizes finding the precise balance between image quality and file size reduction. Our API utilizes various mechanisms for ensuring that the result cannot be distinguished from the original by the human eye, even upon close inspection. If want to get the greatest possible savings without ever having to check the optimized image against the original, this is the plugin for you.
+
 == Changelog ==
+
+= 2.7.0 =
+* Complete plugin rewrite with modular OOP architecture
+* Added WebP image generation and display support
+* Added background processing for image optimization
+* Added support for WP Retina 2x, NextGen Gallery, and WP Offload Media
+* Security: Added capability and nonce checks to reset_all_images AJAX handler
+* Security: Added input sanitization for POST parameters
+* Security: Added whitelist validation for settings tab parameter
+* Bug fix: Fixed undefined variable in optimization type handling
+* Bug fix: Fixed image reset logic that could silently fail
+* Bug fix: Added default return to savings calculation
+* Code quality: Replaced file_get_contents with wp_remote_get for remote requests
+* Code quality: Fixed multiple typos in user-facing strings
+* Code quality: Removed error suppression operators
+* Code quality: Improved POST request detection method
+* Requires PHP 5.6+
+* Requires WordPress 4.9+
 
 = 2.6.8 =
 * Security release - added nonce checking to "reset all metadata" feature in Settings->Kraken.io.
@@ -130,7 +152,7 @@ You will need to switch the Media Library from the Grid view to the List view. I
 = 2.6.2 =
 * Fixed a rare bug which prevented filepaths containing double-forward-slashes from getting optimized.
 
-= 2.6.1 = 
+= 2.6.1 =
 * Bug fixes related to new features
 
 = 2.6.0 =
@@ -143,7 +165,7 @@ You will need to switch the Media Library from the Grid view to the List view. I
 = 2.5.1 =
 * Fix fatal error on older PHP versions resulting from recent PHP array syntax
 
-= 2.5.0 = 
+= 2.5.0 =
 * Ability to disable optimization of main image, allowing faster uploads from Media Library. You can optimize the main image later from within your Media Library.
 * Ability to restrict the maximum dimensions of image uploads (resizing), by width and/or height.
 * When using resize feature, resized images are enhanced for sharper results using various advanced techniques.
@@ -261,11 +283,8 @@ You will need to switch the Media Library from the Grid view to the List view. I
 * Hooks to Media Uploader to optimize all uploaded images, including generated thumbnails.
 * Allows optimization of existing images in Wordpress Media Library.
 
-== Upgrade Notice ==
-Please upgrade immediately in order to avoid a potential security issue that could allow an attacker to overwrite your plugin setting (of the Kraken.io plugin.
-
 == Notes and Incompatible plugins ==
 If you use the WP Super Cache plugin, you must **disable the plugin** prior to performing any image optimization, as it is known to cause strange and buggy behaviour with the Kraken.io Image Optimizer plugin.
 
 == Any Questions? ==
-We love to hear from you! Just shoot an email to support@kraken.io and let's talk.
+We love to hear from you! Just shoot an email to support (at) kraken dot io and let's talk.
