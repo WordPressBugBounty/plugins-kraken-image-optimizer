@@ -30,7 +30,117 @@ class Kraken_IO_Stats
 		add_action('manage_media_custom_column', [$this, 'fill_media_columns'], 10, 2);
 		add_filter('attachment_fields_to_edit', [$this, 'attachment_fields'], 10, 2);
 
+		// Expose the optimizing state to the JS media views (grid + modal) so we
+		// can overlay an indicator on the thumbnail while optimization runs.
+		add_filter('wp_prepare_attachment_for_js', [$this, 'add_js_optimizing_flag'], 10, 2);
+
 		$this->options = kraken_io()->get_options();
+	}
+
+	/**
+	 * Whether an attachment is currently being optimized (main image or thumbnails).
+	 *
+	 * @since  3.0.0
+	 * @access public
+	 * @param  int $id Attachment ID.
+	 * @return bool
+	 */
+	public function is_optimizing($id)
+	{
+		// Nothing can be optimizing if the account isn't connected — don't show
+		// the indicator on a disconnected site.
+		if (!kraken_io()->api->has_auth()) {
+			return false;
+		}
+
+		$meta = get_post_meta($id, '_kraken_size', true);
+
+		// A stored error is a finished (failed) state, not "optimizing".
+		if (is_array($meta) && isset($meta['error'])) {
+			return false;
+		}
+
+		// Once the main image has a result, the image IS optimized as far as
+		// the user can see — show the savings badge, never a spinner, even if
+		// the thumbnails are still working through the background queue. Their
+		// stats simply fill in when that job completes.
+		if (is_array($meta) && isset($meta['kraked_size'])) {
+			return false;
+		}
+
+		$thumbs_meta         = get_post_meta($id, '_kraked_thumbs', true);
+		$optimizing_main     = get_post_meta($id, '_kraken_io_is_optimizing_main_image', true);
+		$optimizing_thumbs   = get_post_meta($id, '_kraken_io_is_optimizing_thumbnails', true);
+		$optimize_main_image = !empty($this->options['optimize_main_image']);
+
+		// Staleness guard: a background job that never reported back (server
+		// restart, dropped loopback, etc.) must not show a perpetual spinner.
+		// Treat an optimizing flag with no recent start time as finished.
+		if ($optimizing_main || $optimizing_thumbs) {
+			$started = (int) get_post_meta($id, '_kraken_io_optimizing_started', true);
+			$timeout = (int) apply_filters('kraken_io_optimizing_timeout', 5 * MINUTE_IN_SECONDS);
+
+			if ($started <= 0 || ( time() - $started ) > $timeout) {
+				return false;
+			}
+		}
+
+		if (!isset($meta['kraked_size']) && $optimize_main_image && $optimizing_main) {
+			return true;
+		}
+
+		if (empty($thumbs_meta) && $optimizing_thumbs) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Flag the optimizing state on the attachment model used by the media grid/modal.
+	 *
+	 * @since  3.0.0
+	 * @access public
+	 * @param  array   $response   Prepared attachment data.
+	 * @param  WP_Post $attachment Attachment post object.
+	 * @return array
+	 */
+	public function add_js_optimizing_flag($response, $attachment)
+	{
+		$id = $attachment->ID;
+
+		if (!kraken_io()->is_supported_attachment($id)) {
+			return $response;
+		}
+
+		$optimizing = $this->is_optimizing($id);
+
+		$response['krakenOptimizing'] = $optimizing;
+		$response['krakenSavings']    = '';
+		$response['krakenError']      = '';
+
+		// Expose a stored failure so the grid can show a red error badge (not
+		// gated on the savings-badge option — errors should always be visible).
+		if (!$optimizing) {
+			$meta = get_post_meta($id, '_kraken_size', true);
+			if (is_array($meta) && !empty($meta['error'])) {
+				$response['krakenError'] = $meta['error'];
+			}
+		}
+
+		// When finished, expose the total savings so the grid can show a badge
+		// (only if the badge option is enabled).
+		if (!$optimizing && !empty($this->options['show_savings_badge'])) {
+			$summary     = $this->get_image_stats_summary($id);
+			$has_savings = !empty($summary['is_main_image_optimized']) || !empty($summary['is_thumbs_optimized']);
+			$percentage  = isset($summary['percentage']) ? $summary['percentage'] : 0;
+
+			if ($has_savings && is_string($percentage) && '0%' !== $percentage) {
+				$response['krakenSavings'] = $percentage;
+			}
+		}
+
+		return $response;
 	}
 
 	/**
@@ -169,7 +279,7 @@ class Kraken_IO_Stats
 		$image_url = wp_get_attachment_url($id);
 		$filename = basename($image_url);
 
-		if (!wp_attachment_is_image($id)) {
+		if (!kraken_io()->is_supported_attachment($id)) {
 			return $stats;
 		}
 
@@ -196,16 +306,12 @@ class Kraken_IO_Stats
 			}
 		}
 
-		$is_optimizing_main_image = get_post_meta($id, '_kraken_io_is_optimizing_main_image', true);
-		$is_optimizing_thumbnails = get_post_meta($id, '_kraken_io_is_optimizing_thumbnails', true);
-
-		if (!isset($meta['kraked_size']) && $optimize_main_image && $is_optimizing_main_image) {
-			$stats['is_optimizing'] = true;
-		}
-
-		if (empty($thumbs_meta) && $is_optimizing_thumbnails) {
-			$stats['is_optimizing'] = true;
-		}
+		// Single source of truth for the optimizing state. The is_optimizing()
+		// method also applies the error guard (a stored error is a finished/failed
+		// state), the staleness guard, and the auth check — so a failed image shows
+		// its error instead of a perpetual "Optimizing..." spinner. Duplicating the
+		// flag logic here (as before) ignored those guards and hid the error.
+		$stats['is_optimizing'] = $this->is_optimizing($id);
 
 		return $stats;
 	}
@@ -246,7 +352,7 @@ class Kraken_IO_Stats
 				$total_thumb_byte_savings += $thumb_byte_savings;
 			}
 
-			$thumbs_savings_percentage = round(($total_thumb_byte_savings / $total_thumb_size * 100), 2) . '%';
+			$thumbs_savings_percentage = $total_thumb_size > 0 ? round(($total_thumb_byte_savings / $total_thumb_size * 100), 2) . '%' : '0%';
 			if ($total_thumb_byte_savings) {
 				$total_thumbs_savings = kraken_io()->format_bytes($total_thumb_byte_savings);
 			} else {
@@ -282,6 +388,7 @@ class Kraken_IO_Stats
 		$total_saved_bytes = 0;
 
 		$total_savings_percentage = 0;
+		$type                     = '';
 
 		$summary = [
 			'percentage' => 0,
@@ -343,7 +450,7 @@ class Kraken_IO_Stats
 			}
 		}
 
-		if ($total_saved_bytes) {
+		if ($total_saved_bytes && $total_original_size > 0) {
 
 			$total_savings_percentage = round(($total_saved_bytes / $total_original_size * 100), 2) . '%';
 
