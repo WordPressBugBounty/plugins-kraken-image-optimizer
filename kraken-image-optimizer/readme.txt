@@ -5,7 +5,7 @@ Requires at least: 4.9
 Requires PHP: 5.6
 Tested up to: 7.0
 Donate link: https://kraken.io
-Stable tag: 3.0.0
+Stable tag: 3.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
@@ -169,6 +169,9 @@ The plugin is free. It connects to the Kraken.io service, which offers a free ac
 6. The Support tab — reach the team through the WordPress.org forum or a pre-filled email, with diagnostics ready to copy.
 
 == Changelog ==
+
+= 3.0.1 =
+* Performance and reliability improvements to the Kraken.io API connection, with broader server compatibility.
 
 = 3.0.0 =
 * New: optimization support for **WebP, AVIF, HEIC, HEIF and PDF** (in addition to JPEG, PNG and GIF).
