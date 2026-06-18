@@ -55,8 +55,8 @@ class Kraken_IO_Ajax
 
 	/**
 	 * The capability required to trigger optimization actions, from the
-	 * "Who can optimize images" advanced setting. Defaults to 'read' (any
-	 * logged-in user) and is validated against the allowed set.
+	 * "Who can optimize images" advanced setting. Defaults to 'upload_files'
+	 * (Author and above) and is validated against the allowed set.
 	 *
 	 * @since  3.0.0
 	 * @access private
@@ -65,9 +65,9 @@ class Kraken_IO_Ajax
 	private function optimize_capability()
 	{
 		$options    = kraken_io()->get_options();
-		$capability = isset($options['optimize_capability']) ? $options['optimize_capability'] : 'read';
+		$capability = isset($options['optimize_capability']) ? $options['optimize_capability'] : 'upload_files';
 
-		return in_array($capability, ['read', 'upload_files', 'manage_options'], true) ? $capability : 'read';
+		return in_array($capability, ['read', 'upload_files', 'manage_options'], true) ? $capability : 'upload_files';
 	}
 
 	/**
@@ -87,17 +87,17 @@ class Kraken_IO_Ajax
 		$id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
 
 		// Configurable capability floor (see the "Who can optimize images"
-		// advanced setting). Default 'read' = any logged-in user, since
-		// optimization is beneficial and non-destructive; the floor only matters
-		// for paid-quota control on open-registration sites.
+		// advanced setting). Defaults to 'upload_files' (Author and above), since
+		// optimization consumes paid Kraken.io quota and rewrites library media.
 		if (!$id || !current_user_can($this->optimize_capability())) {
 			wp_send_json_error(['type' => 'unauthorized']);
 		}
 
-		// Opt-in per-object strictness for sites that want users limited to media
-		// they can edit. Off by default so the common case "anyone who works with
-		// media can optimize the whole library" just works.
-		if (apply_filters('kraken_io_enforce_object_capability', false, $id) && !current_user_can('edit_post', $id)) {
+		// Per-object authorization: the user must be able to edit this specific
+		// attachment, so a low-privileged user cannot optimize, convert or reset
+		// media they do not own. Enforced by default; the filter exists only so a
+		// site can deliberately broaden access, never to silently weaken it.
+		if (apply_filters('kraken_io_enforce_object_capability', true, $id) && !current_user_can('edit_post', $id)) {
 			wp_send_json_error(['type' => 'unauthorized']);
 		}
 
@@ -158,7 +158,10 @@ class Kraken_IO_Ajax
 		$items = [];
 
 		foreach ($ids as $id) {
-			if (!$id) {
+			// Per-object authorization: only report on attachments the user can
+			// edit, so a low-privileged poller cannot read the optimization state
+			// or savings of media they do not own.
+			if (!$id || !current_user_can('edit_post', $id)) {
 				continue;
 			}
 

@@ -933,12 +933,12 @@ class Kraken_IO_Settings
 						'upload_files'   => __('Users who can upload media (Author and above)', 'kraken-io'),
 						'manage_options' => __('Administrators only', 'kraken-io'),
 					],
-					'default' => 'read',
+					'default' => 'upload_files',
 					'title' => __('Who can optimize images', 'kraken-io'),
 					'description' => [
 						__('Controls which logged-in users may trigger optimization actions (single optimize, bulk optimize, reset) from the Media Library.', 'kraken-io'),
-						__('Optimization is non-destructive — it only compresses your images — so the default allows any logged-in user. The single consideration is that every optimization consumes your paid Kraken.io quota. On sites with open registration (membership, WooCommerce, forums), you may prefer to restrict this so untrusted accounts cannot consume your quota.', 'kraken-io'),
-						__('• All logged-in users — anyone signed in, including subscribers (most permissive, default). • Users who can upload media — Authors, Editors and Administrators. • Administrators only — most restrictive.', 'kraken-io'),
+						__('Optimization consumes your paid Kraken.io quota and rewrites your media, so a user can only act on attachments they are allowed to edit, and by default only users who can upload media (Author and above) may optimize. On sites with open registration (membership, WooCommerce, forums), keep this restricted so untrusted accounts cannot consume your quota or alter media.', 'kraken-io'),
+						__('• All logged-in users — anyone signed in who can also edit the attachment (most permissive). • Users who can upload media — Authors, Editors and Administrators (default). • Administrators only — most restrictive.', 'kraken-io'),
 					],
 				],
 				[

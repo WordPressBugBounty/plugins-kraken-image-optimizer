@@ -5,7 +5,7 @@ Requires at least: 4.9
 Requires PHP: 5.6
 Tested up to: 7.0
 Donate link: https://kraken.io
-Stable tag: 3.0.1
+Stable tag: 3.0.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
@@ -28,6 +28,7 @@ From a personal blog to a busy WooCommerce store with tens of thousands of produ
 * **Intelligent lossy & lossless** — pick maximum savings with no visible quality loss, or pixel-perfect lossless. Per-image JPEG quality and chroma subsampling control for power users.
 * **Convert between formats** — turn uploads into **WebP**, **AVIF**, **JPEG**, **PNG** or **GIF**. Reach for next-gen WebP or AVIF for the biggest savings (and to clear Google's "Serve images in next-gen formats" audit), or switch between the classics — whatever fits your site.
 * **Optimizes everything WordPress serves** — the full-size image *and* every thumbnail size (thumbnail, medium, large, …) that actually reaches your visitors through responsive `srcset`.
+* **PDFs too, not just images** — PDF files in your Media Library are compressed through the same Kraken.io engine, so documents download and embed faster.
 * **Smart resizing** — cap oversized uploads to a maximum width/height; resized images are *enhanced* to stay sharp and avoid haloing.
 * **Bulk "Krak 'em all"** — optimize your entire existing library from a dedicated Bulk Optimize screen or the Media Library bulk action, with live progress.
 * **A control panel that tells you everything** — a Kraken.io summary panel on the Media Library, Add Media and Plugins screens (plus a Dashboard widget) shows your connection status, plan, quota usage, active settings and supported formats at a glance.
@@ -169,6 +170,12 @@ The plugin is free. It connects to the Kraken.io service, which offers a free ac
 6. The Support tab — reach the team through the WordPress.org forum or a pre-filled email, with diagnostics ready to copy.
 
 == Changelog ==
+
+= 3.0.2 =
+* Security: tightened permission checks so users can only optimize, convert or reset media they are allowed to edit.
+* Fixed: files without thumbnails (PDFs, AVIF, small images) are now handled correctly — they optimize and show their savings, and no longer report a false error or keep reappearing in the Bulk Optimize list.
+* Fixed: optimization failures now report the real reason (e.g. a timeout or a missing file) instead of a generic "Unknown error."
+* Fixed: free accounts that reach their test quota now see an upgrade prompt instead of an inaccurate paid-plan billing notice.
 
 = 3.0.1 =
 * Performance and reliability improvements to the Kraken.io API connection, with broader server compatibility.

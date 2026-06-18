@@ -367,7 +367,14 @@ class Kraken_IO_Optimization
 		}
 
 		$response = kraken_io()->api->upload($params);
-		$response['type'] = !empty($args['type']) ? $args['type'] : $settings['api_lossy'];
+
+		// Tag the optimization mode (lossy/lossless) on SUCCESS only. On failure
+		// the response may carry a machine error 'type' from the API wrapper
+		// (e.g. 'file_not_found'); overwriting it here would erase the real reason
+		// and surface downstream as a meaningless "Unknown error."
+		if (!empty($response['success'])) {
+			$response['type'] = !empty($args['type']) ? $args['type'] : $settings['api_lossy'];
+		}
 
 		return $response;
 	}
@@ -404,8 +411,52 @@ class Kraken_IO_Optimization
 		}
 
 		return [
-			'error' => isset($optimized_image['message']) ? $optimized_image['message'] : __('Unknown error.', 'kraken-io'),
+			'error' => $this->resolve_error_message($optimized_image),
 		];
+	}
+
+	/**
+	 * Turn an optimization response into a human-readable error message.
+	 *
+	 * A failure is described three different ways depending on where it happened:
+	 * the Kraken API reports its own failures in 'message'; the HTTP client
+	 * (class-kraken.php) reports transport failures — a timeout, an unreadable
+	 * file, an invalid response — in 'error'; and the API wrapper (Kraken_IO_API)
+	 * reports pre-flight failures as a machine 'type' code. Reading all three
+	 * means the user sees the real reason instead of a meaningless "Unknown error."
+	 *
+	 * @since  3.0.2
+	 * @access private
+	 * @param  mixed  $response  The optimization response array.
+	 * @param  string $fallback  Message to use when none of the above is present.
+	 * @return string
+	 */
+	private function resolve_error_message($response, $fallback = '')
+	{
+		if (is_array($response)) {
+			if (!empty($response['message'])) {
+				return $response['message'];
+			}
+
+			if (!empty($response['error'])) {
+				return $response['error'];
+			}
+
+			if (!empty($response['type'])) {
+				$map = [
+					'no_auth'           => __('Your Kraken.io API credentials are missing or invalid.', 'kraken-io'),
+					'empty_data'        => __('There was nothing to send for optimization.', 'kraken-io'),
+					'file_not_provided' => __('No file was provided to optimize.', 'kraken-io'),
+					'file_not_found'    => __('The image file could not be found on the server.', 'kraken-io'),
+				];
+
+				if (isset($map[$response['type']])) {
+					return $map[$response['type']];
+				}
+			}
+		}
+
+		return '' !== $fallback ? $fallback : __('Unknown error.', 'kraken-io');
 	}
 
 	/**
@@ -625,8 +676,18 @@ class Kraken_IO_Optimization
 
 		$error_responses = array_unique($error_responses);
 
+		// Having no intermediate sizes to optimize is NOT a failure: PDFs and
+		// next-gen uploads (e.g. AVIF) frequently have no generated sub-sizes,
+		// and the file itself is handled by optimize_main_image(). Only surface
+		// an error when a thumbnail genuinely failed — otherwise report success
+		// ("nothing more to do") so a successful main-file optimization isn't
+		// masked as "There are no image sizes to optimize."
+		if (empty($error_responses)) {
+			return true;
+		}
+
 		return [
-			'error' => isset($error_responses[0]) ? $error_responses[0] : __('There are no image sizes to optimize.', 'kraken-io'),
+			'error' => $error_responses[0],
 		];
 	}
 
@@ -735,7 +796,7 @@ class Kraken_IO_Optimization
 
 		if (empty($response['success']) || empty($response['kraked_url'])) {
 			return [
-				'error' => isset($response['message']) ? $response['message'] : __('Conversion failed.', 'kraken-io'),
+				'error' => $this->resolve_error_message($response, __('Conversion failed.', 'kraken-io')),
 			];
 		}
 
@@ -899,7 +960,13 @@ class Kraken_IO_Optimization
 			'post_mime_type' => array_values(kraken_io()->get_supported_mime_types()),
 			'posts_per_page' => $posts_per_page,
 			'meta_query' => [
-				'relation' => 'OR',
+				// A file is "unoptimized" only when it has NEITHER marker: no
+				// optimized main image AND no optimized thumbnails. (OR here wrongly
+				// kept thumbnail-less files — PDFs, AVIF, tiny images with no sub-
+				// sizes — in the list forever, since they never get a _kraked_thumbs
+				// entry even after a successful optimization.) This mirrors how
+				// get_image_stats() decides a file is already optimized.
+				'relation' => 'AND',
 				[
 					'key' => '_kraken_size',
 					'compare' => 'NOT EXISTS',

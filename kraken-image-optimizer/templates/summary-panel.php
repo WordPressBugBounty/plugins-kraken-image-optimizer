@@ -108,8 +108,13 @@ $active   = ( $has_auth && $is_valid );
 		<?php if ( ! empty( $data['quota_exceeded'] ) ) : ?>
 			<div class="kraken-summary__alert kraken-summary__alert--warning">
 				<span class="dashicons dashicons-warning"></span>
-				<span><strong><?php esc_html_e( 'Monthly quota exceeded.', 'kraken-io' ); ?></strong> <?php esc_html_e( 'Further optimizations will be billed at the end of your billing period.', 'kraken-io' ); ?></span>
-				<a class="kraken-summary__alert-link" href="<?php echo esc_url( $data['links']['account'] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View account', 'kraken-io' ); ?></a>
+				<?php if ( ! empty( $data['is_free'] ) ) : ?>
+					<span><strong><?php esc_html_e( 'Free test quota used up.', 'kraken-io' ); ?></strong> <?php esc_html_e( 'Upgrade to a paid plan to keep optimizing, or email support@kraken.io to request more test quota.', 'kraken-io' ); ?></span>
+					<a class="kraken-summary__alert-link" href="<?php echo esc_url( $data['links']['pricing'] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Upgrade plan', 'kraken-io' ); ?></a>
+				<?php else : ?>
+					<span><strong><?php esc_html_e( 'Monthly quota exceeded.', 'kraken-io' ); ?></strong> <?php esc_html_e( 'Further optimizations will be billed at the end of your billing period.', 'kraken-io' ); ?></span>
+					<a class="kraken-summary__alert-link" href="<?php echo esc_url( $data['links']['account'] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View account', 'kraken-io' ); ?></a>
+				<?php endif; ?>
 			</div>
 		<?php endif; ?>
 
