@@ -240,6 +240,15 @@ class Kraken_IO_Settings
 				action="<?php echo esc_url(admin_url('options-general.php?page=wp-krakenio&tab=' . $active_tab)); ?>">
 				<?php
 				wp_nonce_field('kraken_io_settings', 'kraken_io_settings_nonce');
+
+				// Sticky save bar at the top of the form, with a live "unsaved
+				// changes" reminder. The settings screens are long, so a
+				// bottom-only Save is easy to miss — users routinely paste their
+				// API key and secret and then navigate away without saving.
+				if ('general' === $active_tab || 'advanced' === $active_tab) {
+					$this->render_save_bar();
+				}
+
 				$this->do_settings_sections($tabs, $active_tab);
 				?>
 
@@ -260,6 +269,39 @@ class Kraken_IO_Settings
 				endif;
 				?>
 			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Sticky "save bar" shown at the top of the General/Advanced settings forms.
+	 *
+	 * Keeps a Save button in view while scrolling the long settings screens and
+	 * flips to an "unsaved changes" reminder the moment anything is edited (the
+	 * toggling is done in assets/admin/settings.js). All text is rendered here so
+	 * it stays translatable; the script only toggles a CSS class.
+	 *
+	 * @since  3.0.3
+	 * @access private
+	 */
+	private function render_save_bar()
+	{
+		// The "All changes saved" confirmation should appear only right after a
+		// real save — never on a fresh, untouched page load. save_options() (run
+		// earlier this request) fills settings_success only on a successful POST.
+		$saved_class = empty($this->settings_success) ? '' : ' is-saved';
+		?>
+		<div class="kraken-savebar<?php echo esc_attr($saved_class); ?>" id="kraken-savebar">
+			<span class="kraken-savebar__status kraken-savebar__status--saved">
+				<span class="dashicons dashicons-yes-alt" aria-hidden="true"></span>
+				<?php esc_html_e('All changes saved', 'kraken-io'); ?>
+			</span>
+			<span class="kraken-savebar__status kraken-savebar__status--unsaved" role="status">
+				<span class="dashicons dashicons-warning" aria-hidden="true"></span>
+				<?php esc_html_e('You have unsaved changes — don’t forget to save.', 'kraken-io'); ?>
+			</span>
+			<input type="submit" name="submit" class="button button-primary kraken-savebar__button"
+				value="<?php esc_attr_e('Save Changes', 'kraken-io'); ?>">
 		</div>
 		<?php
 	}
@@ -963,7 +1005,7 @@ class Kraken_IO_Settings
 						'preserve_meta_copyright' => __('Copyright', 'kraken-io'),
 						'preserve_meta_geotag' => __('Geotag', 'kraken-io'),
 						'preserve_meta_orientation' => __('Orientation', 'kraken-io'),
-						'preserve_meta_profile' => __('Profile Profile', 'kraken-io'),
+						'preserve_meta_profile' => __('Profile', 'kraken-io'),
 					],
 					'default' => [
 						'preserve_meta_date' => '',

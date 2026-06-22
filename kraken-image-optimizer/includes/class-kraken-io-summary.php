@@ -191,7 +191,7 @@ class Kraken_IO_Summary {
 		return apply_filters(
 			'kraken_io_account_links',
 			[
-				'signup'      => 'https://kraken.io/pricing',
+				'signup'      => 'https://kraken.io/signup',
 				'pricing'     => 'https://kraken.io/pricing',
 				'login'       => 'https://kraken.io/login',
 				'account'     => 'https://kraken.io/account',

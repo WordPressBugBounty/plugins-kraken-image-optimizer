@@ -70,8 +70,10 @@ $active   = ( $has_auth && $is_valid );
 		<?php endif; ?>
 
 		<?php if ( $active ) : ?>
-			<a class="kraken-summary__stats-link" href="<?php echo esc_url( $data['stats_url'] ); ?>"><?php esc_html_e( 'View full stats', 'kraken-io' ); ?> &rarr;</a>
-			<button type="button" class="kraken-summary__toggle" aria-expanded="false"><?php esc_html_e( 'Settings', 'kraken-io' ); ?><span class="dashicons dashicons-arrow-down-alt2"></span></button>
+			<div class="kraken-summary__actions">
+				<a class="kraken-summary__stats-link" href="<?php echo esc_url( $data['stats_url'] ); ?>"><?php esc_html_e( 'View full stats', 'kraken-io' ); ?> &rarr;</a>
+				<button type="button" class="kraken-summary__toggle" aria-expanded="false"><?php esc_html_e( 'Settings', 'kraken-io' ); ?><span class="dashicons dashicons-arrow-down-alt2"></span></button>
+			</div>
 		<?php endif; ?>
 	</div>
 

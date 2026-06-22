@@ -387,6 +387,39 @@ class Kraken_IO {
 		// array — it holds api_key/api_secret, which would leak the secret into
 		// the page source. All Kraken API calls happen server-side.
 		wp_localize_script( 'kraken', 'kraken_options', $args );
+
+		// Settings-screen-only enhancement: the sticky save bar + unsaved-changes
+		// guard. Hand-written (no build step), loaded only where the form lives.
+		if ( 'settings_page_wp-krakenio' === $hook ) {
+			$settings_css = $assets_path . 'admin/settings.css';
+			$settings_js  = $assets_path . 'admin/settings.js';
+
+			wp_enqueue_style(
+				'kraken-settings',
+				$assets_url . 'admin/settings.css',
+				[ 'dashicons' ],
+				file_exists( $settings_css ) ? filemtime( $settings_css ) : $plugin_version
+			);
+			wp_enqueue_script(
+				'kraken-settings',
+				$assets_url . 'admin/settings.js',
+				[],
+				file_exists( $settings_js ) ? filemtime( $settings_js ) : $plugin_version,
+				true
+			);
+		}
+
+		// RTL locales (Arabic, etc.): mirror the directional bits of the plugin's
+		// own panels. Loaded last so it overrides both kraken.css and settings.css.
+		if ( is_rtl() ) {
+			$rtl_css = $assets_path . 'admin/rtl.css';
+			wp_enqueue_style(
+				'kraken-rtl',
+				$assets_url . 'admin/rtl.css',
+				[ 'kraken' ],
+				file_exists( $rtl_css ) ? filemtime( $rtl_css ) : $plugin_version
+			);
+		}
 	}
 
 	/**

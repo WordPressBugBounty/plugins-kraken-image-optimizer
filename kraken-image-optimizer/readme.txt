@@ -5,7 +5,7 @@ Requires at least: 4.9
 Requires PHP: 5.6
 Tested up to: 7.0
 Donate link: https://kraken.io
-Stable tag: 3.0.2
+Stable tag: 3.0.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
@@ -59,7 +59,7 @@ Your API credentials are stored **write-only** and masked — they are never pre
 
 = 🚀 Get started for free =
 
-> **Create a [free Kraken.io account](https://kraken.io/pricing "Kraken.io – Plans and Pricing")** — no credit card required — and get testing quota to try the plugin and the rest of the Kraken.io toolset:
+> **Create a [free Kraken.io account](https://kraken.io/signup "Create your free Kraken.io account")** — no credit card required — and get testing quota to try the plugin and the rest of the Kraken.io toolset:
 
 > * A fully-featured optimization **API** with official libraries for PHP, Node.js, Python, Ruby, Java, Go and .NET
 > * **Web Interface** (free) and **Web Interface PRO** with resizing and sync-to-Dropbox
@@ -88,11 +88,13 @@ You can use a single API key across as many sites as you like — there is no pe
 
 == Installation ==
 
-1. From your WordPress admin, go to **Plugins → Add New**, search for **Kraken.io Image Optimizer**, then click **Install Now** and **Activate**. (Or upload the plugin folder to `/wp-content/plugins/` and activate it from the Plugins menu.)
-2. Create a free account and grab your API key and secret from [https://kraken.io/pricing](https://kraken.io/pricing "Kraken.io – Plans and Pricing").
-3. Go to **Settings → Kraken.io**, enter your **API Key** and **API Secret**, choose your optimization preferences, and click **Save**. A green check confirms your credentials are valid.
-4. Every image you upload from now on — and all of its generated thumbnails — is optimized automatically.
-5. To optimize images already in your library, use the **Bulk Optimize with Kraken.io** screen under **Media**, or the **Optimize** button in the Media Library list view.
+You can be optimizing images in a couple of minutes — no servers to configure and no command line.
+
+1. **Install the plugin.** From your WordPress admin, go to **Plugins → Add New**, search for **Kraken.io Image Optimizer**, then click **Install Now** and **Activate**. (Prefer to do it manually? Upload the plugin folder to `/wp-content/plugins/` and activate it from the **Plugins** menu.)
+2. **Create your free Kraken.io account.** [Sign up here](https://kraken.io/signup "Create your free Kraken.io account") — no credit card required, and you get testing quota to try the plugin right away.
+3. **Copy your API credentials.** Open your [API Credentials](https://kraken.io/account/api-credentials "Your Kraken.io API credentials") page and copy your **API Key** and **API Secret**.
+4. **Connect the plugin.** Back in WordPress, go to **Settings → Kraken.io**, paste your **API Key** and **API Secret**, choose your optimization preferences, and click **Save Changes**. A green check confirms your credentials are valid.
+5. **That's it.** Every image you upload from now on — and all of its generated thumbnails — is optimized automatically. To compress images already in your library, use the **Bulk Optimize with Kraken.io** screen under **Media**, or the **Optimize** button in the Media Library list view.
 
 == Frequently Asked Questions ==
 
@@ -170,6 +172,11 @@ The plugin is free. It connects to the Kraken.io service, which offers a free ac
 6. The Support tab — reach the team through the WordPress.org forum or a pre-filled email, with diagnostics ready to copy.
 
 == Changelog ==
+
+= 3.0.3 =
+* New: the plugin is now translated into 64 locales, covering 39 languages — Albanian (Shqip), Arabic (العربية), Belarusian (Беларуская), Bosnian (Bosanski), Bulgarian (Български), Chinese (中文 — Simplified, Traditional and Hong Kong), Croatian (Hrvatski), Czech (Čeština), Danish (Dansk), Dutch (Nederlands — Netherlands and Belgium), Estonian (Eesti), Finnish (Suomi), French (Français — France, Canada and Belgium), German (Deutsch — informal, formal, Austrian and Swiss), Greek (Ελληνικά), Hebrew (עברית), Hungarian (Magyar), Icelandic (Íslenska), Indonesian (Bahasa Indonesia), Italian (Italiano), Japanese (日本語), Korean (한국어), Latvian (Latviešu), Lithuanian (Lietuvių), Macedonian (Македонски), Norwegian (Norsk — Bokmål and Nynorsk), Polish (Polski), Portuguese (Português — Portugal, Brazil and Angola), Romanian (Română), Russian (Русский), Serbian (Српски), Slovak (Slovenčina), Slovenian (Slovenščina), Spanish (Español — Spain, Mexico, Argentina, Chile, Colombia, Costa Rica, Dominican Republic, Ecuador, Guatemala, Honduras, Peru, Puerto Rico, Uruguay and Venezuela), Swedish (Svenska), Thai (ไทย), Turkish (Türkçe), Ukrainian (Українська) and Vietnamese (Tiếng Việt).
+* New: a "Savings on this site" panel on the Stats screen — a clear breakdown of how much your full-size images and their thumbnails were each reduced (from how much, to how much), calculated from your own data and kept separate from the shared account quota.
+* New: a sticky "Save Changes" bar on the settings screen with a live "unsaved changes" reminder, so edits — especially a freshly pasted API key and secret — are never lost by forgetting to save.
 
 = 3.0.2 =
 * Security: tightened permission checks so users can only optimize, convert or reset media they are allowed to edit.

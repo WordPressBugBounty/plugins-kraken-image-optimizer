@@ -34,7 +34,172 @@ class Kraken_IO_Stats
 		// can overlay an indicator on the thumbnail while optimization runs.
 		add_filter('wp_prepare_attachment_for_js', [$this, 'add_js_optimizing_flag'], 10, 2);
 
+		// Keep the site-wide savings figure (Stats tab) fresh as images optimize.
+		add_action('kraken_io_image_optimized', [$this, 'clear_site_savings_cache']);
+
 		$this->options = kraken_io()->get_options();
+	}
+
+	/**
+	 * Aggregate optimization savings for THIS site.
+	 *
+	 * Sums the bytes saved across every optimized attachment on the site — each
+	 * full-size image AND all of its thumbnail sizes — from the per-image meta the
+	 * plugin already stores (_kraken_size and _kraked_thumbs). This is a site-local
+	 * figure built from this install's own data; it is unrelated to the Kraken.io
+	 * account quota shown alongside it.
+	 *
+	 * Cached in a transient (busted whenever an image is optimized) so the Stats
+	 * tab never re-runs the aggregation on every page load.
+	 *
+	 * @since  3.0.3
+	 * @access public
+	 * @param  bool $force Recompute even if a cached value exists.
+	 * @return array {original, kraked, saved, percent, images, thumbs}
+	 */
+	public function get_site_savings($force = false)
+	{
+		$cache_key = 'kraken_io_site_savings';
+
+		if (!$force) {
+			$cached = get_transient($cache_key);
+			if (is_array($cached)) {
+				return $cached;
+			}
+		}
+
+		global $wpdb;
+
+		// Track full-size images and thumbnails SEPARATELY, so the Stats screen
+		// can show "from how much to how much" for each — the original total
+		// includes every generated thumbnail, which is why it is normally far
+		// larger than what the user actually uploaded.
+		$main_original  = 0;
+		$main_kraked    = 0;
+		$thumb_original = 0;
+		$thumb_kraked   = 0;
+		$images         = 0;
+		$thumbs         = 0;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$rows = $wpdb->get_col(
+			"SELECT meta_value FROM {$wpdb->postmeta} WHERE meta_key IN ('_kraken_size', '_kraked_thumbs')"
+		);
+
+		foreach ((array) $rows as $value) {
+			$data = maybe_unserialize($value);
+
+			if (!is_array($data)) {
+				continue;
+			}
+
+			if (isset($data['original_size'])) {
+				// _kraken_size for a successfully optimized main image.
+				$o = $this->to_bytes($data['original_size']);
+				$k = isset($data['kraked_size']) ? $this->to_bytes($data['kraked_size']) : $o;
+
+				if ($o > 0) {
+					$main_original += $o;
+					$main_kraked   += $k;
+					$images++;
+				}
+			} elseif (!isset($data['error'])) {
+				// _kraked_thumbs: a list of per-thumbnail-size entries.
+				foreach ($data as $thumb) {
+					if (!is_array($thumb) || !isset($thumb['original_size'])) {
+						continue;
+					}
+
+					$o = $this->to_bytes($thumb['original_size']);
+					$k = isset($thumb['kraked_size']) ? $this->to_bytes($thumb['kraked_size']) : $o;
+
+					if ($o > 0) {
+						$thumb_original += $o;
+						$thumb_kraked   += $k;
+						$thumbs++;
+					}
+				}
+			}
+		}
+
+		$total_original = $main_original + $thumb_original;
+		$total_kraked   = $main_kraked + $thumb_kraked;
+
+		$result = [
+			'main_original'  => $main_original,
+			'main_kraked'    => $main_kraked,
+			'main_saved'     => max(0, $main_original - $main_kraked),
+			'main_percent'   => $this->pct($main_original, $main_kraked),
+			'thumb_original' => $thumb_original,
+			'thumb_kraked'   => $thumb_kraked,
+			'thumb_saved'    => max(0, $thumb_original - $thumb_kraked),
+			'thumb_percent'  => $this->pct($thumb_original, $thumb_kraked),
+			'original'       => $total_original,
+			'kraked'         => $total_kraked,
+			'saved'          => max(0, $total_original - $total_kraked),
+			'percent'        => $this->pct($total_original, $total_kraked),
+			'images'         => $images,
+			'thumbs'         => $thumbs,
+		];
+
+		set_transient($cache_key, $result, HOUR_IN_SECONDS);
+
+		return $result;
+	}
+
+	/**
+	 * Percentage saved, guarded against divide-by-zero.
+	 *
+	 * @since  3.0.3
+	 * @access private
+	 * @param  int $original
+	 * @param  int $kraked
+	 * @return float
+	 */
+	private function pct($original, $kraked)
+	{
+		return $original > 0 ? round(max(0, $original - $kraked) / $original * 100, 1) : 0;
+	}
+
+	/**
+	 * Normalise a stored size to an integer number of bytes. Modern data stores
+	 * plain byte integers; very old data stored strings like "12.3 kb" — both are
+	 * accepted so historical optimizations still count.
+	 *
+	 * @since  3.0.3
+	 * @access private
+	 * @param  mixed $value
+	 * @return int
+	 */
+	private function to_bytes($value)
+	{
+		// Defensive: ignore anything that isn't a plain scalar (a malformed or
+		// partially-written meta value could be an array/object/null). Never let
+		// the Stats screen fatal on bad data.
+		if (!is_scalar($value)) {
+			return 0;
+		}
+
+		if (is_numeric($value)) {
+			return (int) $value;
+		}
+
+		if (is_string($value) && stripos($value, 'kb') !== false) {
+			return (int) round((float) $value * 1024);
+		}
+
+		return (int) $value;
+	}
+
+	/**
+	 * Bust the cached site-wide savings figure.
+	 *
+	 * @since  3.0.3
+	 * @access public
+	 */
+	public function clear_site_savings_cache()
+	{
+		delete_transient('kraken_io_site_savings');
 	}
 
 	/**

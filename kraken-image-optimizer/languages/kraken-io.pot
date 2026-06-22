@@ -2,7 +2,7 @@
 # This file is distributed under the same license as the Kraken Image Optimizer plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Kraken Image Optimizer 3.0.2\n"
+"Project-Id-Version: Kraken Image Optimizer 3.0.3\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/p\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -446,10 +446,6 @@ msgstr ""
 #: includes/class-kraken-io-settings.php:965
 #: includes/class-kraken-io-summary.php:390
 msgid "Orientation"
-msgstr ""
-
-#: includes/class-kraken-io-settings.php:966
-msgid "Profile Profile"
 msgstr ""
 
 #: includes/class-kraken-io-settings.php:975
@@ -1012,4 +1008,48 @@ msgstr ""
 
 #: templates/support.php:74
 msgid "These links never depend on your server's email setup, so your message always reaches us."
+msgstr ""
+
+#: includes/class-kraken-io-settings.php:293
+msgid "All changes saved"
+msgstr ""
+
+#: includes/class-kraken-io-settings.php:297
+msgid "You have unsaved changes — don’t forget to save."
+msgstr ""
+
+#: templates/stats.php:62
+msgid "Savings on this site"
+msgstr ""
+
+#: templates/stats.php:64
+msgid "These figures cover only the images optimized on this website — every full-size image and all of their thumbnail sizes — and are calculated from this site's own data. They are separate from the Kraken.io account quota shown above, which is shared across every site that uses your API key."
+msgstr ""
+
+#: templates/stats.php:70
+msgid "saved on this site"
+msgstr ""
+
+#: templates/stats.php:79
+msgid "%s smaller overall"
+msgstr ""
+
+#: templates/stats.php
+msgid "Original"
+msgstr ""
+
+#: templates/stats.php
+msgid "Saved"
+msgstr ""
+
+#: templates/stats.php
+msgid "Full-size images"
+msgstr ""
+
+#: templates/stats.php
+msgid "Thumbnails"
+msgstr ""
+
+#: templates/stats.php
+msgid "Total"
 msgstr ""
